@@ -1,0 +1,202 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(tictoc)
+library(ggmap)
+library(skimr)
+library(lubridate)
+library(forcats)
+library(leaflet)
+```
+
+#Downloading data
+```{r, include=FALSE}
+#year 2017
+URL <- "https://s3.amazonaws.com/fordgobike-data/2017-fordgobike-tripdata.csv"
+download.file(URL, destfile = "./data/2017-fordgobike-tripdata.csv", method="curl")
+
+#year 2018
+
+for (i in 1:7) {
+URL <- paste0("https://s3.amazonaws.com/fordgobike-data/20180",i,"-fordgobike-tripdata.csv.zip")
+download.file(URL, destfile = paste0("./data/20180",i,"-fordgobike-tripdata.csv.zip"), method="curl")
+}
+
+#year 2019
+
+for (i in 1:4) {
+URL <- paste0("https://s3.amazonaws.com/fordgobike-data/20190",i,"-fordgobike-tripdata.csv.zip")
+download.file(URL, destfile = paste0("./data/20190",i,"-fordgobike-tripdata.csv.zip"), method="curl")
+}
+
+```
+#Unzipping files
+```{r, include=FALSE}
+#year2018
+unzip("./data/201801-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201802-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201803-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201804-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201805-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201806-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201807-fordgobike-tripdata.csv.zip",exdir="./data")
+
+#year2019
+unzip("./data/201901-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201902-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201903-fordgobike-tripdata.csv.zip",exdir="./data")
+unzip("./data/201904-fordgobike-tripdata.csv.zip",exdir="./data")
+
+
+```
+
+#removing zipped files
+```{r, include=FALSE}
+#year 2018
+fn <- "./data/201801-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201802-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201803-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201804-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201805-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201806-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201807-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+#year 2019
+fn <- "./data/201901-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201902-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201903-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+fn <- "./data/201904-fordgobike-tripdata.csv.zip"
+if (file.exists(fn)) file.remove(fn)
+
+
+```
+#Reading csv files
+```{r, include=FALSE}
+fordgobike2017 <- read_csv(file="./data/2017-fordgobike-tripdata.csv")
+fordgobike201801 <- read_csv(file="./data/201801-fordgobike-tripdata.csv")
+fordgobike201802 <- read_csv(file="./data/201802-fordgobike-tripdata.csv")
+fordgobike201803 <- read_csv(file="./data/201803-fordgobike-tripdata.csv")
+fordgobike201804 <- read_csv(file="./data/201804-fordgobike-tripdata.csv")
+fordgobike201805 <- read_csv(file="./data/201805-fordgobike-tripdata.csv")
+fordgobike201806 <- read_csv(file="./data/201806-fordgobike-tripdata.csv")
+fordgobike201807 <- read_csv(file="./data/201807-fordgobike-tripdata.csv")
+fordgobike201901 <- read_csv(file="./data/201901-fordgobike-tripdata.csv")
+fordgobike201902 <- read_csv(file="./data/201902-fordgobike-tripdata.csv")
+fordgobike201903 <- read_csv(file="./data/201903-fordgobike-tripdata.csv")
+fordgobike201904 <- read_csv(file="./data/201904-fordgobike-tripdata.csv")
+
+```
+# changing variable type before binding data set
+```{r, include=FALSE}
+#changes in year2018
+fordgobike201806 <- fordgobike201806 %>%
+        mutate(start_station_id = as.integer(start_station_id),
+               end_station_id= as.integer(end_station_id) ) 
+fordgobike201807 <- fordgobike201807 %>%
+        mutate(start_station_id = as.integer(start_station_id),
+               end_station_id= as.integer(end_station_id) )
+
+#changes in year 2019
+fordgobike201902 <- fordgobike201902 %>%
+        mutate(start_station_id = as.integer(start_station_id),
+               end_station_id= as.integer(end_station_id) )
+
+fordgobike201903 <- fordgobike201903 %>%
+        mutate(start_station_id = as.integer(start_station_id),
+               end_station_id= as.integer(end_station_id) )
+
+
+```
+
+
+#Combining data frame year wise
+```{r, include=FALSE}
+#year2018
+fordgobike2018 <- bind_rows(fordgobike201801, fordgobike201802, fordgobike201803, fordgobike201804,
+                            fordgobike201805, fordgobike201806, fordgobike201807)
+
+#year2019
+fordgobike2019 <- bind_rows(fordgobike201901, fordgobike201902, fordgobike201903, fordgobike201904)
+
+# year 2017,2018,2019
+fordgobike_all<-bind_rows(fordgobike2017,fordgobike2018,fordgobike2019)
+dim(fordgobike_all)
+str(fordgobike_all)
+
+```
+
+#creating separate columns for days, months and years
+```{r, include=FALSE}
+fordgobike_all <- fordgobike_all %>% mutate(year=year(start_time), month=month(start_time), day=day(start_time) ) 
+fordgobike_all%>%group_by(year)%>%summarize(n=n())
+head(fordgobike_all)
+```
+#Before creating map, lets see which station has the highest number of pick ups
+#This flexdashboard is trying to show busiest station in chart(a), busiest month in chart(b) and the year wise usage of fordgobikes by years in chart(c).
+```{r, include=FALSE}
+fordgobike_all%>%
+  select(start_station_id,start_station_latitude,start_station_longitude)%>%
+  group_by(start_station_id)%>%
+  summarize(n=n())%>%
+  arrange(desc(n))
+
+#San Francisco Ferry Building (Harry Bridges Plaza): lat=37.79539	 and long =-122.3942
+fordgobike_all%>%filter(start_station_id==15)%>%select(start_station_latitude,start_station_longitude)
+```
+
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+mostfamous_station <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=-122.3942, lat=37.79539, popup="Busiest station for fordgobike")  
+mostfamous_station
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+fordgobike_all %>% ggplot(aes(x=month)) + geom_bar()+ggtitle("Fordgobikes were used the most in April")
+```
+
+### Chart C
+
+```{r}
+fordgobike_all %>% ggplot(aes(x=month)) + geom_bar() + facet_grid(year ~ .)+ggtitle("yearly data showing usage of fordgobikes")
+```
+
+
