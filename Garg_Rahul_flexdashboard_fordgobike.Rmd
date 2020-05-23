@@ -175,7 +175,7 @@ fordgobike_all%>%filter(start_station_id==15)%>%select(start_station_latitude,st
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Chart A
+### Busiest station for fordgobike
 
 ```{r}
 mostfamous_station <- leaflet() %>%
@@ -187,14 +187,17 @@ mostfamous_station
 Column {data-width=350}
 -----------------------------------------------------------------------
 
-### Chart B
+### Hisotgram of the Duration of Fordgobike Trips for each Gender
 
 ```{r}
-fordgobike_all %>% ggplot(aes(x=month)) + geom_bar()+ggtitle("Fordgobikes were used the most in April")
+graph2=fordgobike19 %>% ggplot(aes(log(x=duration_sec), y=..density..,fill=member_gender)) + 
+  geom_histogram() + 
+  geom_density(aes(y=..density..)) +
+  facet_grid(member_gender ~ .)+ggtitle("")
+ggplotly(graph2)
 ```
 
-### Chart C
-
+###yearly data showing usage of fordgobikes
 ```{r}
 fordgobike_all %>% ggplot(aes(x=month)) + geom_bar() + facet_grid(year ~ .)+ggtitle("yearly data showing usage of fordgobikes")
 ```
